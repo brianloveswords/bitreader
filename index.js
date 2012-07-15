@@ -32,6 +32,7 @@ BitReader.prototype.write = function (data) {
 BitReader.prototype.end = function (data) {
   if (data) this.write(data);
   this.emit('end', data);
+  return this;
 };
 
 

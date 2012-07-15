@@ -1,0 +1,23 @@
+{
+  "author": "Brian J. Brennan <brianloveswords@gmail.com> (http://bjb.io)",
+  "name": "bitreader",
+  "description": "Generic, space efficient parser with sugar for digesting strings, ints, etc.",
+  "version": "0.0.0",
+  "homepage": "https://github.com/brianloveswords/bitreader",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brianloveswords/bitreader.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/tap test/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tap": "~0.2.5"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
