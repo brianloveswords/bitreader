@@ -151,8 +151,9 @@ BitReader.prototype.eats = function eats(amount) {
  */
 
 BitReader.prototype.rewind = function rewind(amount) {
-  if (!amount) return (this._offset = 0);
-  return (this._offset -= amount);
+  if (!amount) amount = this.position();
+  this._offset -= amount
+  return this;
 };
 
 
@@ -173,7 +174,7 @@ BitReader.prototype.position = function position() {
  */
 
 BitReader.prototype.peak = function peak(amount) {
-  var value =  this.eat(amount);
+  var value = this.eat.apply(this, arguments);
   this.rewind(amount);
   return value;
 };
@@ -197,14 +198,27 @@ BitReader.prototype.peaks = function peaks(amount) {
  */
 
 BitReader.prototype.eatString = function eatString(sep) {
+  var errMsg = util.format('Separator must be a number between [0, 255] or a single character, got %s', sep);
+  var typeErr = new TypeError(errMsg);
+  var rangeErr = new RangeError(errMsg);
+
   // default the separator to null byte
   var buf, start, end, value;
-  if (!sep) sep = 0;
   buf = this._buffer
 
-  // we want to eat until we find a null byte or until the end
+  if (typeof sep === 'undefined')
+    sep = 0;
+  else if (typeof sep === 'string' && sep.length === 1)
+    sep = sep.charCodeAt(0);
+  else if (isNaN(sep))
+    throw typeErr;
+
+  if (sep < 0 || sep > 255)
+    throw rangeErr;
+
+  // we want to eat until we find the separator or until the end
   start = this._offset;
-  while ((value = this.eat()) && value[0] !== 0);
+  while ((value = this.eat()) && value[0] !== sep);
   end = this._offset;
 
   if (start === end)
@@ -239,7 +253,7 @@ BitReader.prototype.eatRemaining = function eatRemaining(opts) {
   }
 
   var chunks = [];
-  while ((value = this.eat(opts.chunkSize)))
+  while ((value = this.eat(opts.chunkSize, opts)))
     chunks.push(value);
   return chunks;
 };

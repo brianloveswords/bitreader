@@ -153,6 +153,14 @@ test('BitReader#peak', function (t) {
   t.end();
 });
 
+test('BitReader#peak with options', function (t) {
+  var p = BitReader(Buffer([0xff, 0x00, 0x00, 0x00]));
+  var expect = 0xff;
+  var value = p.peak(4, {integer: true, endian: 'little'});
+  t.same(value, expect, 'should get 255');
+  t.end();
+});
+
 
 test('BitReader#eatString', function (t) {
   var data = Buffer('what the who');
@@ -176,6 +184,32 @@ test('BitReader#eatString', function (t) {
     var p = new BitReader(data);
     t.same(p.eatString(), 'what');
     t.same(p.eat(3), Buffer('the'));
+    t.end();
+  });
+
+  test('can specify separator', function (t) {
+    var data = Buffer.concat([Buffer('hello'), Buffer([0xff]), Buffer('world')]);
+    var p = new BitReader(data);
+    t.same(p.eatString(0xff), 'hello');
+    t.same(p.eatString(0xff), 'world');
+    t.end();
+  });
+
+  test('specify invalid separator', function (t) {
+    var p = new BitReader('heyhyehyehye');
+    try { p.eatString({nope: 'nope'}); t.fail('should throw error') }
+    catch (err) { t.same(err.name, 'TypeError') }
+
+    try { p.eatString('nope'); t.fail('should throw error') }
+    catch (err) { t.same(err.name, 'TypeError') }
+
+    try { p.eatString('∞'); t.fail('should throw error when given huge char') }
+    catch (err) { t.same(err.name, 'RangeError') }
+
+    try { p.eatString(NaN); t.fail('should throw error when given NaN') }
+    catch (err) { t.same(err.name, 'TypeError') }
+
+    t.same(p.eatString('y'), 'he')
     t.end();
   });
 
@@ -203,7 +237,13 @@ test('BitReader#eatRemaining', function (t) {
     t.end();
   });
 
-
+  t.test('', function (t) {
+    var data = Buffer([0x00, 0xff, 0x00, 0xff, 0x00, 0xff]);
+    var p = new BitReader(data);
+    var ints = p.eatRest({ chunkSize: 2, integer: true });
+    t.same(ints, [0x00ff, 0x00ff, 0x00ff]);
+    t.end();
+  });
   t.end();
 });
 
