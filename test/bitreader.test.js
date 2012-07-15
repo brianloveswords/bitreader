@@ -1,5 +1,6 @@
 var fs = require('fs');
 var test = require('tap').test;
+var Buffer = require('../lib/buffer.js');
 var BitReader = require('..');
 
 var data = Buffer('where did you get your _____?');

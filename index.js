@@ -1,5 +1,7 @@
+var Buffer = require('./lib/buffer.js');
 var Stream = require('stream').Stream;
 var util = require('util');
+
 /**
   A generic parser, implementing generic parser things like eating
   bytes, rewinding, peaking, etc.
