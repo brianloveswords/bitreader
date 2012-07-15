@@ -10,7 +10,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/tap test/"
+    "test": "./node_modules/.bin/tap test/*.test.js"
   },
   "dependencies": {},
   "devDependencies": {
