@@ -237,7 +237,7 @@ test('BitReader#eatRemaining', function (t) {
     t.end();
   });
 
-  t.test('', function (t) {
+  t.test('passing opts to eat', function (t) {
     var data = Buffer([0x00, 0xff, 0x00, 0xff, 0x00, 0xff]);
     var p = new BitReader(data);
     var ints = p.eatRest({ chunkSize: 2, integer: true });
