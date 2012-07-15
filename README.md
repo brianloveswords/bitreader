@@ -1,5 +1,7 @@
 # bitreader
 
+[![Build Status](https://secure.travis-ci.org/brianloveswords/bitreader.png?branch=master)](http://travis-ci.org/brianloveswords/buffer-crc32)
+
 Generic, space efficient parser with sugar for digesting strings, ints, etc.
 
 # Install
@@ -10,34 +12,8 @@ $ npm install bitreader
 
 # API
 
-## BitReader(*[data]*)
-**@returns** `instance`
-**@see** `BitReader#write`
-***
+See [the API page on the wiki](https://github.com/brianloveswords/bitreader/wiki/API)
 
-Instantiate a `BitReader`. Can be used with or without `new`. If `data`
-is not passed in, you can call `BitReader#write` to get data into the
-parser.
+# License
 
-## BitReader#write(*data*)
-**@returns** `this`
-**@emits** `{'data', data}`
-***
-
-Add new data to the internal buffer of the parser. This and
-`BitReader#end` allow streams to be piped into the parser.
-
-```js
-  var parser = BitReader();
-  var f = fs.createReadStream(someLargeFile);
-  f.pipe(parser);
-  parser.on('data', function(data) {
-    // parse things;
-  });
-```
-
-## BitReader#end(*[data]*)
-**@returns** `this`
-**@emits** `{'end', data}`
-***
-
+[http://wtfpl.org/](http://wtfpl.org/)
