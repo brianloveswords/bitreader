@@ -5,15 +5,32 @@ var util = require('util');
   bytes, rewinding, peaking, etc.
 */
 
-function BitReader(data) {
+function BitReader(data, opts) {
   if (!(this instanceof BitReader))
-    return new BitReader(data);
+    return new BitReader(data, opts);
+  opts = opts || {};
   this._buffer = new Buffer(0);
   if (data) this.write(data);
   this.writable = true;
+  this.setEndian(opts.endian || 'BE');
   this._offset = 0;
 }
 util.inherits(BitReader, Stream);
+BitReader.interpretEndian = function interpretEndian(str) {
+  if (str.match(/^(le|little)$/i)) return 'LE'
+  if (str.match(/^(be|big)$/i)) return 'BE';
+  return null;
+};
+
+BitReader.prototype.setEndian = function setEndian(end) {
+  var endianness;
+  if ((endianness = BitReader.interpretEndian(end))) {
+    this.endianness = endianness;
+    return this;
+  }
+  var err = new TypeError(util.format('Unrecognized input: %s. Acceptable inputs are: [LE, little, BE, big]', end));
+  throw err;
+};
 
 /**
  * Append a new buffer. If given a string, will perform conversion to buffer.
@@ -29,6 +46,7 @@ BitReader.prototype.write = function (data) {
   this.emit('data', data);
   return this;
 };
+
 BitReader.prototype.end = function (data) {
   if (data) this.write(data);
   this.emit('end', data);
@@ -61,7 +79,10 @@ BitReader.prototype.eat = function eat(amount, opts) {
 
   // we don't want to deal with oob errors so if we're trying to consume
   // past the boundary of the buffer, consume the rest.
-  if (end >= buflen) end = buflen;
+  if (end >= buflen) {
+    end = buflen;
+    this.emit('empty')
+  }
 
   value = buf.slice(start, end);
   this._offset = end;
@@ -71,21 +92,41 @@ BitReader.prototype.eat = function eat(amount, opts) {
 
   if (opts.integer) {
     var prefix = 'readInt'
+    var endian = this.endianness;
+    var methodName;
+
+    if (!~[1, 2, 4].indexOf(amount)) {
+      var err = new RangeError(util.format('Invalid value for amount `%s` when `opts.integer` is true, valid values are [1, 2, 4]', amount));
+      throw err;
+    }
+
+    if (opts.endian) {
+      endian = BitReader.interpretEndian(opts.endian);
+      if (!endian) {
+        var err = new TypeError(util.format('Invalid value for `opts.endian` %s', opts.endian));
+        throw err;
+      }
+    }
+
     if (opts.signed === false)
       prefix = 'readUInt';
-    var methodName = prefix + (amount * 8);
-    if (amount > 1) methodName += 'BE';
+
+    methodName = prefix + (amount * 8);
+
+    if (amount > 1)
+      methodName += endian;
+
     return value[methodName](0);
   }
   return value;
 };
 
 /** convience methods */
-BitReader.prototype.eatInt = function (amount) {
-  return this.eat(amount, { integer: true, signed: true });
+BitReader.prototype.eatInt = function (amount, endian) {
+  return this.eat(amount, { integer: true, signed: true, endian: endian });
 };
-BitReader.prototype.eatUInt = function (amount) {
-  return this.eat(amount, { integer: true, signed: false });
+BitReader.prototype.eatUInt = function (amount, endian) {
+  return this.eat(amount, { integer: true, signed: false, endian: endian });
 };
 BitReader.prototype.eatBool = function () {
   return !!this.eatUInt(1);
@@ -188,6 +229,7 @@ BitReader.prototype.eatRemaining = function eatRemaining(opts) {
   var buf, start, value;
   buf = this._buffer;
   start = this._offset;
+
   if (!opts.chunkSize) {
     value = buf.slice(start, buf.length);
     this._offset = buf.length;

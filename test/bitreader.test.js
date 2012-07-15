@@ -3,6 +3,24 @@ var test = require('tap').test;
 var BitReader = require('..');
 
 var data = Buffer('where did you get your _____?');
+
+test('constructor', function (t) {
+  var p;
+  p = BitReader('lol');
+  t.same(p.endianness, 'BE', 'should be BE by default');
+
+  p = BitReader('lol', { endian: 'le' });
+  t.same(p.endianness, 'LE', 'should be LE when passed in');
+
+  p = BitReader('lol', { endian: 'little' });
+  t.same(p.endianness, 'LE', 'should understand little');
+
+  p = BitReader('lol', { endian: 'big' });
+  t.same(p.endianness, 'BE', 'should understand big');
+t.end();
+});
+
+
 test('BitReader#eat', function (t) {
   t.test('returns the right values after eating', function (t) {
     var p = new BitReader(data);
@@ -11,6 +29,60 @@ test('BitReader#eat', function (t) {
     t.same(p.eat(4), Buffer('re d'));
     t.end();
   });
+
+  t.test('reading little endian values', function (t) {
+    var buf = Buffer([0xff, 0x00, 0x00, 0x00]);
+    var p = BitReader(buf, {endian: 'little'});
+    var expect = 0xff;
+    var value = p.eat(4, {integer: true});
+    t.same(p.endianness, 'LE', 'should be little endian');
+    t.same(value, expect, 'should get 255');
+    t.end();
+  });
+
+  t.test('overriding default endianness', function (t) {
+    var buf = Buffer([0xff, 0x00, 0x00, 0x00]);
+    var p = BitReader(buf, {endian: 'big'});
+    var expect = 0xff;
+    var value = p.eat(4, {integer: true, endian: 'little'});
+    t.same(p.endianness, 'BE', 'should be big endian');
+    t.same(value, expect, 'should get 255');
+    t.end();
+  });
+
+  t.test('error when trying to read an invalid amount as integer', function (t) {
+    var buf = Buffer(12);
+    buf.fill(0xff);
+    var p = BitReader(buf);
+    try {
+      p.eat(3, {integer: true});
+      t.fail('should not be able to read 3 bytes as an integer');
+    } catch (err) {
+      t.same(err.name, 'RangeError');
+      t.end();
+    }
+  });
+
+  t.test('error when trying to pass invalid value to endian', function (t) {
+    var buf = Buffer(12); buf.fill(0xff);
+    try {
+      var p = BitReader(buf, {endian: 'huge'});
+      t.fail('should not be able to set endian to bogus value');
+    } catch (err) {
+      t.same(err.name, 'TypeError');
+    }
+
+    try {
+      var p = BitReader(buf);
+      p.eat(4, {integer: true, endian: 'massive'});
+      t.fail('should not be able to set endian to bogus value');
+    } catch (err) {
+      t.same(err.name, 'TypeError');
+    }
+    t.end();
+  });
+
+
 
   t.test('updates the length after eating', function (t) {
     var p = new BitReader(data);
@@ -21,27 +93,37 @@ test('BitReader#eat', function (t) {
 
   t.test('returns sane values when out of bounds', function (t) {
     var p = new BitReader(data);
-    t.same(p.eat(Buffer.poolSize), data);
-    t.same(p.eat(Buffer.poolSize), null);
+    t.same(p.eat(Infinity), data);
+    t.same(p.eat(Infinity), null);
     t.end();
   });
 
   t.test('can cast values to ints', function (t) {
+    var p;
     p = new BitReader(Buffer([0x10, 0x80]));
     t.same(p.eat(2, { integer: true }), 4224);
 
     p = new BitReader(Buffer([0x30, 0x20, 0x10, 0x80]));
     t.same(p.eatInt(4), 807407744);
-    t.end();
 
-    var p = new BitReader(Buffer([0xf6]));
+    p = new BitReader(Buffer([0xf6]));
     t.same(p.eatUInt(1), 246);
 
-    p = new BitReader(Buffer([0xff, 0xff, 0xd8, 0xf1]));
-    console.dir(p.eatInt(4)); p.rewind();
+    t.end();
   });
   t.end();
 });
+
+test('eatInt with endianness', function (t) {
+  var buf = Buffer([0xff, 0x00, 0x00, 0x00]);
+  var p = BitReader(buf);
+  var expect = 0xff;
+  var value = p.eatInt(4, 'little');
+  t.same(p.endianness, 'BE', 'should be big endian');
+  t.same(value, expect, 'should get 255');
+  t.end();
+});
+
 
 test('BitReader#eatBool', function (t) {
   t.same(true, (new BitReader(Buffer([0x01])).eatBool()));
