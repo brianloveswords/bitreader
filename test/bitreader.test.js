@@ -1,6 +1,6 @@
+var fs = require('fs');
 var test = require('tap').test;
-var BitReader = require('../lib/bitreader.js');
-var assert = require('assert');
+var BitReader = require('..');
 
 var data = Buffer('where did you get your _____?');
 test('BitReader#eat', function (t) {
@@ -133,8 +133,8 @@ test('BitReader#write', function (t) {
   t.test('appends another buffer to the internal buffer', function (t) {
     var p = new BitReader();
     t.same(p.getBuffer(), Buffer(''));
-    t.same(p.write(data), Buffer('lol'));
-    t.same(p.write(moar), Buffer('lollercoaster'));
+    t.same(p.write(data).getBuffer(), Buffer('lol'));
+    t.same(p.write(moar).getBuffer(), Buffer('lollercoaster'));
     t.end();
   });
 
@@ -149,4 +149,34 @@ test('BitReader#remaining', function (t) {
   p.eat(6);
   t.same(p.remaining(), data.length - 6);
   t.end();
+});
+
+test('piping data in, simple', function (t) {
+  var p = BitReader();
+  var expect = fs.readFileSync(__dirname + '/testfile.txt');
+  var f = fs.createReadStream(__dirname + '/testfile.txt', {bufferSize: 2});
+  function errHandler() { t.fail('should not have an error') }
+  f.pipe(p);
+  f.on('error', errHandler); p.on('error', errHandler);
+
+  t.plan(8);
+  p.on('data', function (d) { t.pass('got event') });
+  p.on('end', function () {
+    t.same(expect, this.getBuffer());
+    t.end();
+  });
+});
+
+test('piping data in, double pipe', function (t) {
+  var p = BitReader();
+  var p2 = BitReader();
+  var expect = fs.readFileSync(__dirname + '/testfile.txt');
+  var f = fs.createReadStream(__dirname + '/testfile.txt', {bufferSize: 2});
+  function errHandler() { t.fail('should not have an error') }
+  f.pipe(p).pipe(p2);
+  f.on('error', errHandler); p.on('error', errHandler);
+  p2.on('end', function () {
+    t.same(expect, this.getBuffer());
+    t.end();
+  });
 });

@@ -1,14 +1,19 @@
+var Stream = require('stream').Stream;
+var util = require('util');
 /**
   A generic parser, implementing generic parser things like eating
   bytes, rewinding, peaking, etc.
 */
 
 function BitReader(data) {
+  if (!(this instanceof BitReader))
+    return new BitReader(data);
   this._buffer = new Buffer(0);
-  if (data)
-    this.write(data);
+  if (data) this.write(data);
+  this.writable = true;
   this._offset = 0;
 }
+util.inherits(BitReader, Stream);
 
 /**
  * Append a new buffer. If given a string, will perform conversion to buffer.
@@ -20,8 +25,15 @@ BitReader.prototype.write = function (data) {
   var newbuf = Buffer.isBuffer(data) ? data : Buffer(data.toString());
   var oldbuf = this._buffer;
   var length = newbuf.length + oldbuf.length;
-  return (this._buffer = Buffer.concat([oldbuf, newbuf], length));
+  this._buffer = Buffer.concat([oldbuf, newbuf], length)
+  this.emit('data', data);
+  return this;
 };
+BitReader.prototype.end = function (data) {
+  if (data) this.write(data);
+  this.emit('end', data);
+};
+
 
 /**
  * Create new view of the internal buffer starting from the stored offset
