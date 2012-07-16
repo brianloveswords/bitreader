@@ -2,7 +2,7 @@
   "author": "Brian J. Brennan <brianloveswords@gmail.com> (http://bjb.io)",
   "name": "bitreader",
   "description": "Generic, space efficient parser with sugar for digesting strings, ints, etc.",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/brianloveswords/bitreader",
   "repository": {
     "type": "git",
