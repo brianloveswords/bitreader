@@ -1,6 +1,6 @@
 # bitreader
 
-[![Build Status](https://secure.travis-ci.org/brianloveswords/bitreader.png?branch=master)](http://travis-ci.org/brianloveswords/buffer-crc32)
+[![Build Status](https://secure.travis-ci.org/brianloveswords/bitreader.png?branch=master)](http://travis-ci.org/brianloveswords/bitreader)
 
 Generic, space efficient parser with sugar for digesting strings, ints, etc.
 
