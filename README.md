@@ -2,13 +2,13 @@
 
 Generic, space efficient parser with sugar for digesting strings, ints, etc.
 
-# Install
+## Install
 
 ```bash
 $ npm install bitreader
 ```
 
-# Example
+## Example
 Adapted from [streampng](/brianloveswords/streampng)
 
 ```js
@@ -38,10 +38,17 @@ SuggestedPalette.prototype.initialize = function initialize(data) {
 };
 ```
 
-# API
+## API
 
 See [the API page on the wiki](https://github.com/brianloveswords/bitreader/wiki/API)
 
-# License
+## Tests
+Uses [tap](/isaacs/node-tap) for testing. Tested against node 0.6.19 and node 0.8.2.
+
+```js
+npm test
+```
+
+## License
 
 [http://wtfpl.org/](http://wtfpl.org/)
