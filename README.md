@@ -45,8 +45,8 @@ See [the API page on the wiki](https://github.com/brianloveswords/bitreader/wiki
 ## Tests
 Uses [tap](/isaacs/node-tap) for testing. Tested against node 0.6.19 and node 0.8.2.
 
-```js
-npm test
+```bash
+$ npm test
 ```
 
 ## License
