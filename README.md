@@ -1,6 +1,9 @@
 # bitreader [![Build Status](https://secure.travis-ci.org/brianloveswords/bitreader.png?branch=master)](http://travis-ci.org/brianloveswords/bitreader)
 
-Generic, space efficient parser with sugar for digesting strings, ints, etc.
+Generic, space efficient (uses `Buffer#slice` as much as possilbe)
+parser with sugar for digesting strings, ints, etc. Inherits from
+stream, implements `write` and `end`, and emits `data` events for easy
+piping.
 
 ## Install
 
